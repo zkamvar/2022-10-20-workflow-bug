@@ -28,11 +28,21 @@ push <- function(path, branch = "znk-fix-workflows-2022-10-20") {
   upstream <- paste0("origin/", branch) 
   gert::git_branch_checkout(branch, repo = path)
   gert::git_push(set_upstream = TRUE, repo = path)
+  body <- r"{This pull request updates the workflows for this lesson.
+
+There are two items that are changed:
+
+1. r-lib/actions/setup-r now uses `@v2` instead of `@master` as the default tag
+2. the `set-output` GHA workflow command has been updated as it was deprecated.
+
+see https://github.com/carpentries/styles/issues/641 for details
+
+If you have any questions, contact @zkamvar}"
   tryCatch({
     processx::run("gh", 
       c("pr", "create",
         "--title", "urgent: fix workflows", 
-        "--body", gert::git_log(repo = path, max = 1)$message), 
+        "--body", body),
         wd = path, echo = TRUE, echo_cmd = TRUE)
   }, error = function(e) e)
 }
@@ -75,7 +85,7 @@ commit_workflows <- function(path, workflows) {
   # I am committing like this so that my signature is added
   tryCatch({
     processx::run("git", c("commit", "-m", 
-      "use up-to-date r-lib action; update GHA syntax\n\nsee https://github.com/carpentries/styles/issues/641 for details"), 
+      "use up-to-date r-lib action; update GHA syntax"), 
       wd = path, echo = TRUE, echo_cmd = TRUE)
     },
     error = function(e) e)
@@ -102,8 +112,8 @@ parse_and_write <- function(path, workflow) {
   newdx <- get_setup_lines(newf)
   res <- replace_lines(wf, idx, newf[newdx])
   # output lines
-  idx <- get_output_line(res)
-  newdx <- get_output_line(newf)
+  idx <- grep("set-output name=count", res, fixed = TRUE)
+  newdx <- grep("GITHUB_OUTPUT", newf)
   res[idx] <- newf[newdx]
 
   writeLines(res, workflow)
@@ -132,6 +142,7 @@ replace_lines <- function(wf, idx, new) {
 # 2. apply the patch using one of the three strategies outlined in the README
 # 3. commit the change, push the branch, and make a pull request using the
 #    gh cli application
+#   returns the name of the HEAD branch on github
 create_patch <- function(repodir) {
   old <- checkout_branch(repodir)
   status <- apply_patch(repodir)
@@ -141,4 +152,5 @@ create_patch <- function(repodir) {
     apply_workflows(repodir)
   }
   push(repodir)
+  old
 }

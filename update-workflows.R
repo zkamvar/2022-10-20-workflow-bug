@@ -38,7 +38,7 @@ community_repos <- jsonlite::read_json("data/community_lessons.json") |>
 tmpdir <- setup_tmpdir()
 
 purrr::map(official_repos, \(x) {
-  repodir <- get_repository(x)
+  repodir <- get_repository(x, tmpdir)
   res <- tryCatch(create_patch(repodir), error = function(e) e)
   if (!inherits(x, "error")) {
     fs::dir_delete(repodir)
