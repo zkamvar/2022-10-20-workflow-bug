@@ -1,0 +1,83 @@
+From 036a455bd8640ae9aeddd359925ea630ea51722c Mon Sep 17 00:00:00 2001
+From: "Zhian N. Kamvar" <zkamvar@gmail.com>
+Date: Thu, 20 Oct 2022 07:10:23 -0700
+Subject: [PATCH 1/2] use up-to-date r-lib action
+
+This will fix #641
+---
+ .github/workflows/template.yml | 5 +++--
+ .github/workflows/website.yml  | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/.github/workflows/template.yml b/.github/workflows/template.yml
+index 9ff0d662..90260ca0 100644
+--- a/.github/workflows/template.yml
++++ b/.github/workflows/template.yml
+@@ -131,9 +131,10 @@ jobs:
+ 
+       - name: Set up R
+         if: steps.check-rmd.outputs.count != 0
+-        uses: r-lib/actions/setup-r@master
++        uses: r-lib/actions/setup-r@v2
+         with:
+-          r-version: 'release'
++          use-public-rspm: true
++          install-r: false
+ 
+       - name: Install needed packages
+         if: steps.check-rmd.outputs.count != 0
+diff --git a/.github/workflows/website.yml b/.github/workflows/website.yml
+index 9d47e300..d351e683 100644
+--- a/.github/workflows/website.yml
++++ b/.github/workflows/website.yml
+@@ -48,9 +48,10 @@ jobs:
+ 
+       - name: Set up R
+         if: steps.check-rmd.outputs.count != 0
+-        uses: r-lib/actions/setup-r@master
++        uses: r-lib/actions/setup-r@v2
+         with:
+-          r-version: 'release'
++          use-public-rspm: true
++          install-r: false
+ 
+       - name: Restore R Cache
+         if: steps.check-rmd.outputs.count != 0
+
+From fe10a72ec7726bb473e6da71a49a98ed956dfff8 Mon Sep 17 00:00:00 2001
+From: "Zhian N. Kamvar" <zkamvar@gmail.com>
+Date: Thu, 20 Oct 2022 07:11:28 -0700
+Subject: [PATCH 2/2] switch to new output command
+
+this will fix #642
+---
+ .github/workflows/template.yml | 2 +-
+ .github/workflows/website.yml  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/.github/workflows/template.yml b/.github/workflows/template.yml
+index 90260ca0..0665e0cf 100644
+--- a/.github/workflows/template.yml
++++ b/.github/workflows/template.yml
+@@ -127,7 +127,7 @@ jobs:
+         id: check-rmd
+         working-directory: lesson
+         run: |
+-          echo "::set-output name=count::$(shopt -s nullglob; files=($(find . -iname '*.Rmd')); echo ${#files[@]})"
++          echo "count=$(shopt -s nullglob; files=($(find . -iname '*.Rmd')); echo ${#files[@]})" >> $GITHUB_OUTPUT
+ 
+       - name: Set up R
+         if: steps.check-rmd.outputs.count != 0
+diff --git a/.github/workflows/website.yml b/.github/workflows/website.yml
+index d351e683..be0b1875 100644
+--- a/.github/workflows/website.yml
++++ b/.github/workflows/website.yml
+@@ -44,7 +44,7 @@ jobs:
+       - name: Look for R-markdown files
+         id: check-rmd
+         run: |
+-          echo "::set-output name=count::$(shopt -s nullglob; files=($(find . -iname '*.Rmd')); echo ${#files[@]})"
++          echo "count=$(shopt -s nullglob; files=($(find . -iname '*.Rmd')); echo ${#files[@]})" >> $GITHUB_OUTPUT
+ 
+       - name: Set up R
+         if: steps.check-rmd.outputs.count != 0
