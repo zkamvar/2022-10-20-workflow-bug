@@ -150,7 +150,12 @@ create_patch <- function(repodir) {
     status$stderr, fixed = TRUE)
   if (nosha) {
     apply_workflows(repodir)
+  } else {
+    return(status)
   }
-  push(repodir)
+  res <- push(repodir)
+  if (inerits(res, "error")) {
+    return(res)
+  }
   old
 }
