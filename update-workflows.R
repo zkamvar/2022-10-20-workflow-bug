@@ -8,6 +8,8 @@ library("purrr")
 
 
 source("functions.R")
+
+# we do not want any of the workbench repositories to be included here.
 workbench_repos <- c("workbench-template-md", 
   "workbench-template-rmd",
   "sandpaper-docs", 
@@ -20,7 +22,8 @@ workbench_repos <- c("workbench-template-md",
   "python-modeling-power-consumption",
   "python-classifying-power-consumption",
   "R-ecology-lesson-intermediate",
-  "encode-data-exploration"
+  "encode-data-exploration",
+  "cwl-novice-tutorial" # push already given
 )
 
 # all official repos that were built with styles and are still active
