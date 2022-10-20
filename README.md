@@ -25,7 +25,7 @@ In theory, if a lesson had those updates, regardless of any other updates, we
 can apply a patch with:
 
 ```sh
-git am -3 workflow.patch
+git am -3 workflow.patch # the 3 is to perform a 3-way merge to circumvent weird failures
 ```
 
 [The patch](workflow.patch) itself is taken from the [patch for PR 643](https://patch-diff.githubusercontent.com/raw/carpentries/styles/pull/643.patch)
