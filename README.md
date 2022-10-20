@@ -30,26 +30,84 @@ git am -3 workflow.patch
 
 [The patch](workflow.patch) itself is taken from the [patch for PR 643](https://patch-diff.githubusercontent.com/raw/carpentries/styles/pull/643.patch)
 
-The good thing about this is that it will preserve history and _hopefully_ 
-prevent a merge conflict because these will be part of the history. Here is what
-the patch looks like when it has already been applied in the lesson-example repo
+The good thing about this is that it will preserve history and will prevent a
+merge conflict because these will be part of the history.
+
+This is what a merge with styles looks like after the patch has been applied
+(with an unrelated merge conflict) in the instructor training repository.
+
+NOTE: The last time styles was updated was back in February:
 
 ```
-(main)$ git am -3 ../2022-10-20-workflow-bug/workflow.patch
+(gh-pages)$ git log --pretty=reference | grep styles | head -1
+fd95778e (Merge branch 'gh-pages' of github.com:carpentries/styles into upgrade-template, 2022-02-01)
+```
+
+This is what things look like when we apply the patch:
+
+```
+(gh-pages)$ git switch -c test-updates
+(test-updates)$ git am -3 ../2022-10-20-workflow-bug/workflow.patch
 Applying: use up-to-date r-lib action
-Using index info to reconstruct a base tree...
-M	.github/workflows/template.yml
-M	.github/workflows/website.yml
-Falling back to patching base and 3-way merge...
-Auto-merging .github/workflows/website.yml
-Auto-merging .github/workflows/template.yml
-No changes -- Patch already applied.
 Applying: switch to new output command
-Using index info to reconstruct a base tree...
-M	.github/workflows/template.yml
-M	.github/workflows/website.yml
-Falling back to patching base and 3-way merge...
-No changes -- Patch already applied.
+```
+
+After these updates were made, I run the update for styles:
+
+```
+(test-updates)$ git pull https://github.com/carpentries/styles
+remote: Enumerating objects: 85, done.
+remote: Counting objects: 100% (85/85), done.
+remote: Compressing objects: 100% (36/36), done.
+remote: Total 85 (delta 56), reused 68 (delta 48), pack-reused 0
+Unpacking objects: 100% (85/85), 25.52 KiB | 1.21 MiB/s, done.
+From https://github.com/carpentries/styles
+ * branch              HEAD       -> FETCH_HEAD
+Auto-merging _layouts/base.html
+CONFLICT (content): Merge conflict in _layouts/base.html
+Auto-merging bin/boilerplate/_config.yml
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+There was a conflict, but when we look at it, the conflict has do to with
+modifications that the trainers made in one of the template files and NOT with
+the patch we just made:
+
+```
+(test-updates)$ git diff
+diff --cc _layouts/base.html
+index 7536c245,67b6d7af..00000000
+--- a/_layouts/base.html
++++ b/_layouts/base.html
+@@@ -31,15 -29,10 +31,18 @@@
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+ -
+ -  <title>
+ +      <title>
+    {% if page.title %}{{ page.title }}{% endif %}{% if page.title and site.title %} &ndash; {% endif %}{% if site.title %}{{ site.title }}{% endif %}
+    </title>
+++<<<<<<< HEAD
+ +
+ +    <meta property="og:url" content="{{ page.root }}/{{ page.url }}" />
+ +<meta property="og:type" content="article" />
+ +<meta property="og:title" content="{{ page.title }}" />
+ +<meta property="og:description" content="Lesson episode summary - keypoints?" />
+ +<meta property="og:image" content="http://christinalk.github.io/instructor-training/assets/img/swc-icon-blue.svg" />
+++=======
+++>>>>>>> b31b489624a25fa7f76513047056953f3e649b61
+  
+    </head>
+    <body>
+```
+
+And of course to clean up, I abort the merge and switch back to the gh-pages branch
+
+```
+(test-updates)$ git merge --abort
+(test-updates)$ git switch gh-pages
+(gh-pages)$ git branch -D test-updates
 ```
 
 ### File Replacement
