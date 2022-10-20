@@ -1,4 +1,3 @@
-library("gh")
 library("fs")
 library("gert")
 library("yaml")
@@ -22,7 +21,9 @@ workbench_repos <- c("workbench-template-md",
   "python-modeling-power-consumption",
   "python-classifying-power-consumption",
   "R-ecology-lesson-intermediate",
-  "encode-data-exploration"
+  "encode-data-exploration",
+  "instructor-training", # already submitted as a test
+  "cwl-novice-tutorial"
 )
 
 # all official repos that were built with styles and are still active
@@ -37,12 +38,28 @@ community_repos <- jsonlite::read_json("data/community_lessons.json") |>
 
 tmpdir <- setup_tmpdir()
 
-purrr::map(official_repos, \(x) {
-  repodir <- get_repository(x, tmpdir)
+official_dirs <- purrr::map(official_repos, get_repository, tmpdir)
+purrr::map(official_dirs, \(x) {
+  Sys.sleep(2)
+  name <- fs::path_split(x)[[1]]
+  name <- fs::path(paste(name[length(name) - 1:0], collapse = "/"))
+  res <- tryCatch(create_patch(x), error = function(e) e)
+  if (!inherits(x, "error")) {
+    message(sprintf("     PR for %s successfully submitted!", name))
+    fs::dir_delete(x)
+    TRUE
+  } else {
+    message(sprintf("ERROR in %s: %s", name, res$stderr))
+  }
+})
+
+community_dirs <- purrr::map(community_repos, get_repository, tmpdir)
+purrr::walk(community_dirs, \(x) {
   res <- tryCatch(create_patch(repodir), error = function(e) e)
   if (!inherits(x, "error")) {
     fs::dir_delete(repodir)
   }
 })
+
 
 
