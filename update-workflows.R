@@ -22,8 +22,7 @@ workbench_repos <- c("workbench-template-md",
   "python-modeling-power-consumption",
   "python-classifying-power-consumption",
   "R-ecology-lesson-intermediate",
-  "encode-data-exploration",
-  "cwl-novice-tutorial" # push already given
+  "encode-data-exploration"
 )
 
 # all official repos that were built with styles and are still active
@@ -38,5 +37,12 @@ community_repos <- jsonlite::read_json("data/community_lessons.json") |>
 
 tmpdir <- setup_tmpdir()
 
+purrr::map(official_repos, \(x) {
+  repodir <- get_repository(x)
+  res <- tryCatch(create_patch(repodir), error = function(e) e)
+  if (!inherits(x, "error")) {
+    fs::dir_delete(repodir)
+  }
+})
 
 

@@ -81,12 +81,14 @@ commit_workflows <- function(path, workflows) {
     error = function(e) e)
 }
 
+# OPTION 2: replace files ------------------------------------------------------
 copy_and_commit <- function(path, workflows) {
   ours <- fs::path_file(workflows)
   fs::file_copy(ours, workflows)
   commit_workflows(path, workflows)
 }
 
+# OPTION 3: Replace lines in the file ------------------------------------------
 parse_and_commit <- function(path, workflows) {
   purrr::walk(workflows, \(x) parse_and_write(path, x))
   commit_workflows(path, workflows)
@@ -95,9 +97,15 @@ parse_and_commit <- function(path, workflows) {
 parse_and_write <- function(path, workflow) {
   wf <- readLines(workflow)
   newf <- readLines(fs::path_file(workflow))
+  # setup lines
   idx <- get_setup_lines(wf)
   newdx <- get_setup_lines(newf)
   res <- replace_lines(wf, idx, newf[newdx])
+  # output lines
+  idx <- get_output_line(res)
+  newdx <- get_output_line(newf)
+  res[idx] <- newf[newdx]
+
   writeLines(res, workflow)
 }
 
@@ -107,6 +115,10 @@ get_setup_lines <- function(wf) {
   idx[steps]
 }
 
+get_output_line <- function(wf) {
+  grep("set-output name=count", wf, fixed = TRUE)
+}
+
 replace_lines <- function(wf, idx, new) {
   start <- seq(idx[1] - 1L)
   end <- seq(idx[length(idx)], length(wf))
@@ -114,7 +126,12 @@ replace_lines <- function(wf, idx, new) {
 }
 
 
-
+# MAIN FUNCTION: this will do a few things:
+#
+# 1. check out the patch branch from the repository
+# 2. apply the patch using one of the three strategies outlined in the README
+# 3. commit the change, push the branch, and make a pull request using the
+#    gh cli application
 create_patch <- function(repodir) {
   old <- checkout_branch(repodir)
   status <- apply_patch(repodir)
