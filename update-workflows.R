@@ -55,9 +55,16 @@ purrr::map(official_dirs, \(x) {
 
 community_dirs <- purrr::map(community_repos, get_repository, tmpdir)
 purrr::walk(community_dirs, \(x) {
-  res <- tryCatch(create_patch(repodir), error = function(e) e)
+  Sys.sleep(2)
+  name <- fs::path_split(x)[[1]]
+  name <- fs::path(paste(name[length(name) - 1:0], collapse = "/"))
+  res <- tryCatch(create_patch(x), error = function(e) e)
   if (!inherits(x, "error")) {
-    fs::dir_delete(repodir)
+    message(sprintf("     PR for %s successfully submitted!", name))
+    fs::dir_delete(x)
+    TRUE
+  } else {
+    message(sprintf("ERROR in %s: %s", name, res$stderr))
   }
 })
 
