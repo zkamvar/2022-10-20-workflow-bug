@@ -188,3 +188,17 @@ patch_and_report <- function(x) {
     return(res)
   }
 }
+
+pr_submitted <- function(x) {
+  identical(x$status$status, 0L)
+}
+
+get_pr_url <- function(x) {
+  paste(trimws(x$status$stdout), "    ")
+} 
+
+record_prs <- function(x) {
+  purrr::keep(x, pr_submitted) |>
+    purrr::map_chr(get_pr_url) |>
+    cat(file = "pull-log.md", sep = "\n", append = TRUE)
+}
