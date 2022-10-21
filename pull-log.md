@@ -23,7 +23,6 @@ https://github.com/LibraryCarpentry/lc-open-refine/pull/252
 https://github.com/LibraryCarpentry/lc-sql/pull/148    
 https://github.com/LibraryCarpentry/lc-r/pull/81    
 https://github.com/carpentries-incubator/python-novice-programming-gapminder/pull/3    
-
 https://github.com/carpentries-incubator/git-novice-branch-pr/pull/51     
 https://github.com/carpentries-incubator/swc-ext-python/pull/44     
 https://github.com/carpentries-incubator/deep-learning-intro/pull/259     
