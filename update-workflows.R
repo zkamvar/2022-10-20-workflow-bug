@@ -30,21 +30,24 @@ to_exclude <- sub("^https://github.com/[^/]+/([^/]+)/pull/.+$", "\\1", to_exclud
 # all official repos that were built with styles and are still active
 official_repos <- jsonlite::read_json("data/lessons.json") |>
   purrr::discard(\(x) x$life_cycle == "on-hold" | x$repo %in% to_exclude)
+names(official_repos) <- purrr::map_chr(official_repos, "repo")
+
 
 # all community repos that were built with styles or the template
 community_repos <- jsonlite::read_json("data/community_lessons.json") |>
   purrr::discard(\(x) x$life_cycle == "on-hold" | x$repo %in% to_exclude)
+names(community_repos) <- purrr::map_chr(community_repos, "repo")
 
 tmpdir <- setup_tmpdir()
 
 official_dirs <- purrr::map(official_repos, get_repository, tmpdir)
 official_res <- purrr::map(official_dirs, patch_and_report)
-names(official_res) <- purrr::map_chr(official_repos, "repo")
+names(official_res) <- names(official_repos)
 record_prs(official_res)
-official_problems <- record_problems(official_res)
+official_problems <- record_problems(official_res, official_repos)
 
 community_dirs <- purrr::map(community_repos, get_repository, tmpdir)
 community_res <- purrr::map(community_dirs, patch_and_report)
-names(community_res) <- purrr::map_chr(community_repos, "repo")
+names(community_res) <- names(community_repos)
 record_prs(community_res)
-community_problems <- record_problems(community_res)
+community_problems <- record_problems(community_res, community_repos)

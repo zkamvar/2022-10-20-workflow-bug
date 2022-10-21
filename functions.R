@@ -220,7 +220,7 @@ is_shell_problem <- function(x) {
     !is.null(x$status$status) 
 }
 
-record_problems <- function(x) {
+collect_problems <- function(x) {
   workflows <- purrr::keep(x, is_workflow_problem)
   shell     <- purrr::keep(x, is_shell_problem)
   other     <- purrr::keep(x, is_other_problem)
@@ -234,4 +234,27 @@ record_problems <- function(x) {
     length(success), length(x), pct*100)
   message(msg)
   list(workflows = workflows, shell = shell, other = other)
+}
+
+record_problems <- function(x, db) {
+  problems <- collect_problems(x)
+  for (i in names(problems)) {
+    this_problem <- problems[[i]]
+    if (length(this_problem) == 0) {
+      next
+    } else {
+      thing <- db[names(this_problem)]
+      urls <- purrr::map_chr(thing, "repo_url")
+      problem_place <- switch(i,
+        shell = c("status", "sterr"),
+        workflows = c("status", "message"),
+        other = "message"
+      )
+      messages <- purrr::map_chr(this_problem, problem_place)
+      the_file <- paste0(i, "-problems.md")
+      cat(paste(urls, messages, sep = " --- "), sep = "    \n", file = the_file,
+        append = TRUE)
+    }
+  }
+  problems
 }
