@@ -202,3 +202,36 @@ record_prs <- function(x) {
     purrr::map_chr(get_pr_url) |>
     cat(file = "pull-log.md", sep = "\n", append = TRUE)
 }
+
+is_workflow_problem <- function(x) {
+  inherits(x$status, "error") &&
+    is.null(x$status$status) && 
+    !is.null(x$status$message) &&
+    x$status$message == "No workflow directory"
+}
+
+is_other_problem <- function(x) {
+  is.null(x$status$status) && 
+    is.null(x$status$message)
+}
+
+is_shell_problem <- function(x) {
+  inherits(x$status, "error") &&
+    !is.null(x$status$status) 
+}
+
+record_problems <- function(x) {
+  workflows <- purrr::keep(x, is_workflow_problem)
+  shell     <- purrr::keep(x, is_shell_problem)
+  other     <- purrr::keep(x, is_other_problem)
+  success   <- purrr::keep(x, pr_submitted)
+  pct       <- sum(lengths(list(workflows, shell, other, success)))/length(x)
+  msg <- "wkflow:\t%d\nshell:\t%d\nother:\t%d\nok:\t%d\n---------\ntotal:\t%d (%.2f%%)"
+  msg <- sprintf(msg, 
+    length(workflows), 
+    length(shell), 
+    length(other), 
+    length(success), length(x), pct*100)
+  message(msg)
+  list(workflows = workflows, shell = shell, other = other)
+}
