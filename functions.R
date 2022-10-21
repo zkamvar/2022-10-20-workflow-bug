@@ -5,12 +5,17 @@ setup_tmpdir <- function() {
 }
 
 setup_repodir <- function(org, repo, tmpdir) {
-  fs::dir_create(fs::path(tmpdir, org, repo), recurse = TRUE)
+  the_dir <- fs::path(tmpdir, org, repo)
+  fs::dir_create(the_dir, recurse = TRUE)
 }
 
 get_repository <- function(lesson, tmpdir) {
   path <- setup_repodir(lesson$carpentries_org, lesson$repo, tmpdir)
-  gert::git_clone(lesson$repo_url, path = path)
+  msg <- sprintf("Creating %s ------------", fs::path_rel(path, start = tmpdir))
+  message(msg)
+  if (!fs::dir_exists(fs::path(path, ".git"))) {
+    gert::git_clone(lesson$repo_url, path = path)
+  }
   path
 }
 
@@ -69,13 +74,20 @@ apply_workflows <- function(path, md5 = "workflow-md5.txt") {
   known <- read.table(md5)
   sha <- setNames(known[[1]], fs::path_file(known[[2]]))
   workflows <- fs::path(path, ".github/workflows/", names(sha))
-  current <- tools::md5sum(workflows)
-  names(current) <- fs::path_file(names(current))
-  if (all(current == sha)) {
-    copy_and_commit(path, workflows)
+  if (fs::dir_exists(fs::path_dir(workflows[1]))) {
+    current <- tools::md5sum(workflows)
+    names(current) <- fs::path_file(names(current))
+    # returns status output of processx or error message
+    if (all(current == sha)) {
+      copy_and_commit(path, workflows)
+    } else {
+      # read in the workflows and modify accordingly
+      parse_and_commit(path, workflows)
+    }
   } else {
-    # read in the workflows and modify accordingly
-    parse_and_commit(path, workflows)
+    msg <- "No workflow directory"
+    message("No workflow directory. Update not needed")
+    tryCatch(stop(msg), error = function(e) e)
   }
 }
 
@@ -145,17 +157,34 @@ replace_lines <- function(wf, idx, new) {
 #   returns the name of the HEAD branch on github
 create_patch <- function(repodir) {
   old <- checkout_branch(repodir)
+  # apply patch will fail for many repositories
   status <- apply_patch(repodir)
-  nosha <- grepl("error: sha1 information is lacking or useless", 
-    status$stderr, fixed = TRUE)
-  if (nosha) {
-    apply_workflows(repodir)
-  } else {
-    return(status)
+  # when this fails, we try to apply the workflows directly
+  if (inherits(status, "error")) {
+    status <- apply_workflows(repodir)
   }
-  res <- push(repodir)
-  if (inerits(res, "error")) {
+  if (inherits(status, "error")) {
+    return(list(status = status, head = old))
+  }
+  status <- push(repodir)
+  return(list(status = status, head = old))
+}
+
+patch_and_report <- function(x) {
+  Sys.sleep(2)
+  name <- fs::path_split(x)[[1]]
+  name <- fs::path(paste(name[length(name) - 1:0], collapse = "/"))
+  message("-------------------------")
+  message(sprintf("RUNNING %s", name))
+  res <- tryCatch(create_patch(x), error = function(e) e)
+  if (inherits(res$status, "error")) {
+    message(sprintf("ERROR in %s: %s", name, res$status$stderr))
+    message("resetting repository")
+    delete_branch(x, res$head)
+    return(res)
+  } else {
+    message(sprintf("     PR for %s successfully submitted!", name))
+    fs::dir_delete(x)
     return(res)
   }
-  old
 }

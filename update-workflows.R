@@ -22,51 +22,25 @@ workbench_repos <- c("workbench-template-md",
   "python-classifying-power-consumption",
   "R-ecology-lesson-intermediate",
   "encode-data-exploration",
-  "instructor-training", # already submitted as a test
-  "cwl-novice-tutorial"
 )
+
+to_exclude <- readLines("pull-log.md") |> trimws() |> c(workbench_repos)
+to_exclude <- sub("^https://github.com/[^/]+/([^/]+)/pull/.+$", "\\1", to_exclude)
 
 # all official repos that were built with styles and are still active
 official_repos <- jsonlite::read_json("data/lessons.json") |>
-  purrr::discard(\(x) x$life_cycle == "on-hold" | x$repo %in% workbench_repos) |>
-  purrr::map(\(x) x[names(x) != "github_topics"]) 
+  purrr::discard(\(x) x$life_cycle == "on-hold" | x$repo %in% to_exclude)
 
 # all community repos that were built with styles or the template
 community_repos <- jsonlite::read_json("data/community_lessons.json") |>
-  purrr::discard(\(x) x$life_cycle == "on-hold" | x$repo %in% workbench_repos) |>
-  purrr::map(\(x) x[names(x) != "github_topics"])
+  purrr::discard(\(x) x$life_cycle == "on-hold" | x$repo %in% to_exclude)
 
 tmpdir <- setup_tmpdir()
 
 official_dirs <- purrr::map(official_repos, get_repository, tmpdir)
-purrr::map(official_dirs, \(x) {
-  Sys.sleep(2)
-  name <- fs::path_split(x)[[1]]
-  name <- fs::path(paste(name[length(name) - 1:0], collapse = "/"))
-  res <- tryCatch(create_patch(x), error = function(e) e)
-  if (!inherits(x, "error")) {
-    message(sprintf("     PR for %s successfully submitted!", name))
-    fs::dir_delete(x)
-    TRUE
-  } else {
-    message(sprintf("ERROR in %s: %s", name, res$stderr))
-  }
-})
+official_res <- purrr::map(official_dirs, patch_and_report)
+names(official_res) <- purrr::map_chr(official_repos, "repo")
 
 community_dirs <- purrr::map(community_repos, get_repository, tmpdir)
-purrr::walk(community_dirs, \(x) {
-  Sys.sleep(2)
-  name <- fs::path_split(x)[[1]]
-  name <- fs::path(paste(name[length(name) - 1:0], collapse = "/"))
-  res <- tryCatch(create_patch(x), error = function(e) e)
-  if (!inherits(x, "error")) {
-    message(sprintf("     PR for %s successfully submitted!", name))
-    fs::dir_delete(x)
-    TRUE
-  } else {
-    message(sprintf("ERROR in %s: %s", name, res$stderr))
-  }
-})
-
-
-
+community_res <- purrr::map(community_dirs, patch_and_report)
+names(community_res) <- purrr::map_chr(community_repos, "repo")
