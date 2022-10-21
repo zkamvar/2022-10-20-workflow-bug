@@ -14,6 +14,29 @@ However, the problem with this strategy is that there are many times in which
 we face merge conflicts in our pull requests. Thus, I am going to approach this
 in a different way.
 
+## Process
+
+I created [a process to patch a single repository](#solutions) given different
+situations. To expand this to all of our repositories, I used the following steps,
+which are exemplified in [`update-workflows.R`](update-workflows.R):
+
+1. gather log of all current repositories from [our JSON
+   feeds](https://feeds.carpentries.org/) and save them to the [`data/`](data/)
+   folder. Read these in and exclude repositories known to use The Carpentries
+   Workbench.
+2. download each repository to a temporary folder
+3. checkout a new branch called `znk-fix-workflows-2022-10-20`
+4. attempt to patch given the strategies outlined in [Solutions](#solutions)
+5. push the branch upstream and create a pull request
+6. record successful PRs in [pull-log.md](pull-log.md)
+7. record failed attempts in [workflow-problems.md](workflow-problems.md),
+   [other-problems.md](other-problems.md), or
+   [shell-problems.md](shell-problems.md)
+
+This process was _not_ done in one fell swoop, but rather I tested some
+repositories early on, ran the official lessons, and then came back to run the
+incubator lessons.
+
 ## Solutions
 
 ### Clean Patch
