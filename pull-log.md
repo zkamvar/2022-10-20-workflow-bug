@@ -22,3 +22,4 @@ https://github.com/swcarpentry/r-novice-gapminder-es/pull/130
 https://github.com/LibraryCarpentry/lc-open-refine/pull/252    
 https://github.com/LibraryCarpentry/lc-sql/pull/148    
 https://github.com/LibraryCarpentry/lc-r/pull/81    
+https://github.com/carpentries-incubator/python-novice-programming-gapminder/pull/3    
