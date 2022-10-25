@@ -77,3 +77,12 @@ https://github.com/carpentries-incubator/neuroimaging-workshop/pull/1
 https://github.com/carpentries-incubator/zotero-intro/pull/1     
 https://github.com/carpentries-incubator/multidimensional-biodiversity-data/pull/1     
 https://github.com/carpentries-incubator/twitter-with-twarc/pull/53     
+https://github.com/carpentries-incubator/singularity-introduction/pull/27     
+https://github.com/carpentries-incubator/python-text-analysis/pull/49     
+https://github.com/carpentries-incubator/microbial-amplicon-analysis/pull/6     
+https://github.com/carpentries-incubator/statistics-r-public-health/pull/2     
+https://github.com/carpentries-incubator/r-object-comparison-waldo/pull/1     
+https://github.com/carpentries-incubator/statistical-thinking-public-health/pull/29     
+https://github.com/carpentries-incubator/linear-mixed-models-public-health/pull/1     
+https://github.com/carpentries-incubator/workflows-nextflow/pull/83     
+https://github.com/carpentries-incubator/blogging-with-hugo-and-github-pages/pull/21     
