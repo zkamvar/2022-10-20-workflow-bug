@@ -21,7 +21,7 @@ workbench_repos <- c("workbench-template-md",
   "python-modeling-power-consumption",
   "python-classifying-power-consumption",
   "R-ecology-lesson-intermediate",
-  "encode-data-exploration",
+  "encode-data-exploration"
 )
 # we want to exclude anything that is in the pull-log because we know they were
 # successful
